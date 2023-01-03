@@ -60,3 +60,7 @@ This library is the reference implementation for [the Open Product Recovery stan
 ### Start configuring your own OPR server
 
 Check out the `examples` folder for example working setups for various environments. A good place to start is the `local-starter` folder. The local starter example uses an sqlite database and includes some special endpoints to help generate fake offers so that its easier to see common settings for a server and how they work.
+
+### Version Warning
+
+The Current Version of OPR is in beta and the major version is 0. All changes to the library may by breaking changes. Please refer to the discussions for details on updates. (https://github.com/google/open-product-recovery/discussions)
