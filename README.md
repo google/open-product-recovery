@@ -53,6 +53,9 @@ npx lerna run test
 
 from the root directory to run all the unit tests. If you want to run the Postgres tests in opr-sql-database, you need to have a working installation of Postgres and the `initdb`, `postgres` and `psql` commands must be in your `PATH` environment variable. If those commands aren't available, the Postgres tests will be skipped.
 
+### Devcontainer
+If you use [VScode](https://code.visualstudio.com/), install the [devcontainer extention](https://code.visualstudio.com/docs/devcontainers/containers) as well as [docker desktop](https://www.docker.com/). VS code will helpfully ask if you'd like to re-open the project in a devcontainer, which should, after downloading and setting up a whole bunch of stuff, drop you right into a prompt that is ready to run `npx lerna run test`
+
 ### Read the standards
 
 This library is the reference implementation for [the Open Product Recovery standards](standards/README.md). You may want to read the standards docs before you dive into setting up your own server.
