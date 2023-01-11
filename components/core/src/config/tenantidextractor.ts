@@ -1,5 +1,5 @@
 /**
- * Copyright 2022 Google LLC
+ * Copyright 2023 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,21 @@
  * limitations under the License.
  */
 
-import type {FrontendConfig} from '../../config/frontendconfig';
-import type {FrontendConfigProvider} from '../../config/frontendconfigprovider';
-import fs from 'fs';
+import {Pluggable} from '../integrations/pluggable';
 
-export class LocalFileFrontendConfigProvider implements FrontendConfigProvider {
-  private path: string;
+/**
+ * Extracts a TenantNode unique identifier from a URL.
+ */
+export interface TenantIdExtractor extends Pluggable {
+  readonly type: 'tenantIdExtractor';
 
-  constructor(path: string) {
-    this.path = path;
-  }
+  /** Extracts the TenantNode id from a request url. */
+  getTenantId(reqUrl: string): string | undefined;
 
-  async getConfig(): Promise<FrontendConfig> {
-    return JSON.parse((await fs.promises.readFile(this.path)).toString());
-  }
+  /**
+   * Generates the root path on the server for the given TenantNode id. This
+   * is the base path from which all other paths are generated for this
+   * TenantNode.
+   */
+  getRootPathFromId(id: string): string;
 }

@@ -5,10 +5,10 @@ module.exports = {
     'prettier',
     'plugin:@typescript-eslint/recommended',
   ],
-  ignorePatterns: ['**/build/**'],
-  plugins: ['node', 'prettier', '@typescript-eslint'],
+  ignorePatterns: ['**/build/**', '**/*.js'],
+  plugins: ['node', 'prettier', '@typescript-eslint', 'header'],
   rules: {
-    'prettier/prettier': 'error',
+    'prettier/prettier': 'off',
     'block-scoped-var': 'error',
     eqeqeq: 'error',
     'no-var': 'error',
@@ -24,6 +24,28 @@ module.exports = {
         tabWidth: 2,
         ignorePattern: '^import .*',
       },
+    ],
+    'header/header': [
+      2,
+      'block',
+      [
+        '*',
+        {pattern: ' * Copyright \\d{4} Google LLC'},
+        ' *',
+        ' * Licensed under the Apache License, Version 2.0 (the "License");',
+        ' * you may not use this file except in compliance with the License.',
+        ' * You may obtain a copy of the License at',
+        ' *',
+        ' *      http://www.apache.org/licenses/LICENSE-2.0',
+        ' *',
+        ' * Unless required by applicable law or agreed to in writing, software',
+        ' * distributed under the License is distributed on an "AS IS" BASIS,',
+        ' * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND' +
+          ', either express or implied.',
+        ' * See the License for the specific language governing permissions and',
+        ' * limitations under the License.',
+        ' '
+      ],
     ],
     'no-restricted-properties': [
       'error',

@@ -15,6 +15,7 @@
  */
 
 import {ReshareChain} from 'opr-models';
+import {Pluggable} from '../integrations/pluggable';
 import {ChainScope} from './chainscope';
 
 export interface IssueTokenOptions {
@@ -31,7 +32,9 @@ export interface SignChainOptions {
   scopes?: Array<ChainScope>;
 }
 
-export interface Signer {
+export interface Signer extends Pluggable {
+  readonly type: 'signer';
+
   issueToken(aud: string, options?: IssueTokenOptions): Promise<string>;
   signChain(
     chain: Readonly<ReshareChain>,

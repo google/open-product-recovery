@@ -57,7 +57,7 @@ export class OrgConfigProvider {
     // assuming it's the right type.
     const fetchUrl = this.urlMapper.map(orgUrl);
     const orgConfig = (await this.jsonFetcher.fetch(fetchUrl)) as OrgConfig;
-    this.orgConfigCache.put(orgUrl, orgConfig);
+    await this.orgConfigCache.put(orgUrl, orgConfig);
     return orgConfig;
   }
 
@@ -81,7 +81,7 @@ export class OrgConfigProvider {
     const jwks = (await this.jsonFetcher.fetch(fetchUrl)) as JSONWebKeySet;
     // Create, but don't use, a local jwkset to verify that the json is right.
     createLocalJWKSet(jwks);
-    this.orgConfigCache.putJwks(orgUrl, jwks);
+    await this.orgConfigCache.putJwks(orgUrl, jwks);
     return jwks;
   }
 }

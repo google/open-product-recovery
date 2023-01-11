@@ -134,7 +134,6 @@ export class DataDrivenTest {
         }
       }
       if (!found) {
-        console.log('dirname', config.cwd);
         expect.fail('No tests found for config: ' + config.name);
       }
     });

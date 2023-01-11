@@ -28,7 +28,6 @@ import {TimelineEntry} from '../model/timelineentry';
 import {IntegrationApi} from '../integrations/integrationapi';
 import {OprNetworkClient} from '../net/oprnetworkclient';
 import {PersistentStorage} from '../database/persistentstorage';
-import {OprServer} from './oprserver';
 import {CustomRequestHandler} from './customrequesthandler';
 import {Clock} from '../util/clock';
 import {DefaultClock} from '../util/defaultclock';
@@ -36,17 +35,19 @@ import {StatusError} from '../util/statuserror';
 import {Logger, log} from '../util/loglevel';
 import {OfferModel} from '../model/offermodel';
 import {OfferProducer} from '../offerproducer/offerproducer';
-import {Express} from 'express';
+import {NextFunction, Request, Response, Router} from 'express';
 import {JsonValue} from '../util/jsonvalue';
+import {OprTenantNode} from './oprtenantnode';
 
 export interface IntegrationApiImplOptions {
   hostOrgUrl: string;
   storage: PersistentStorage;
   netClient?: OprNetworkClient;
   model: OfferModel;
-  server: OprServer;
+  host: OprTenantNode;
   clock?: Clock;
   logger?: Logger;
+  router?: Router;
 }
 
 /**
@@ -55,21 +56,24 @@ export interface IntegrationApiImplOptions {
  * integration.
  */
 export class IntegrationApiImpl implements IntegrationApi {
-  private hostOrgUrl: string;
+  readonly hostOrgUrl: string;
   private storage: PersistentStorage;
   private netClient?: OprNetworkClient;
-  private server: OprServer;
+  private host: OprTenantNode;
   private clock: Clock;
   private model: OfferModel;
   private logger: Logger;
   private modelRegistration: HandlerRegistration;
   private changeHandlers: Array<(change: OfferChange) => Promise<void>>;
+  private router: Router;
+  private children: IntegrationApi[];
 
   constructor(options: IntegrationApiImplOptions) {
     this.hostOrgUrl = options.hostOrgUrl;
     this.storage = options.storage;
     this.netClient = options.netClient;
-    this.server = options.server;
+    this.host = options.host;
+    this.router = options.router ?? this.host.getRouter();
     this.clock = options.clock ?? new DefaultClock();
     this.model = options.model;
     this.logger = options.logger ?? log.getLogger('OprClient');
@@ -77,9 +81,47 @@ export class IntegrationApiImpl implements IntegrationApi {
       this.fireChange(change)
     );
     this.changeHandlers = [];
+    this.children = [];
+  }
+
+  namespacedClone(pathNamespace: string) {
+    if (pathNamespace.startsWith('/')) {
+      pathNamespace = pathNamespace.substring(1);
+    }
+    if (!pathNamespace.endsWith('/')) {
+      pathNamespace += '/';
+    }
+    if (pathNamespace === '/') {
+      pathNamespace = '';
+    }
+    // TODO: Build a wrapper around the Router so installations can be logged.
+    const newRouter = Router();
+    (newRouter as unknown as Record<string, string>).cloneNamespace =
+      pathNamespace;
+    const newApi = new IntegrationApiImpl({
+      hostOrgUrl: this.hostOrgUrl,
+      storage: this.storage,
+      host: this.host,
+      router: newRouter,
+      clock: this.clock,
+      model: this.model,
+      logger: this.logger,
+      netClient: this.netClient,
+    });
+    this.router.use(
+      '/' + pathNamespace,
+      async (req: Request, res: Response, next: NextFunction) => {
+        newRouter(req, res, next);
+      }
+    );
+    this.children.push(newApi);
+    return newApi;
   }
 
   destroy(): void {
+    for (const child of this.children) {
+      child.destroy();
+    }
     this.modelRegistration.remove();
   }
 
@@ -188,7 +230,7 @@ export class IntegrationApiImpl implements IntegrationApi {
   }
 
   ingestOffers(): Promise<void> {
-    return this.server.ingest();
+    return this.host.ingest();
   }
 
   async accept(offerId: OfferId): Promise<Offer> {
@@ -215,7 +257,6 @@ export class IntegrationApiImpl implements IntegrationApi {
         reshareChain: reshareChain,
       }
     );
-    console.log('Received accept response', result);
     const acceptedOffer = (result as AcceptOfferResponse).offer;
     await this.fireChange({
       oldValue: acceptedOffer,
@@ -361,16 +402,35 @@ export class IntegrationApiImpl implements IntegrationApi {
     return new OprClientHandlerRegistration(handlerFn, this.changeHandlers);
   }
 
-  installCustomHandler(path: string, handler: CustomRequestHandler): void {
-    this.server.installCustomHandler(path, handler);
-  }
-
   installOfferProducer(producer: OfferProducer): void {
-    this.server.installOfferProducer(producer);
+    this.host.installOfferProducer(producer);
   }
 
-  getExpressServer(): Express {
-    return this.server.getExpressServer();
+  getExpressRouter(): Router {
+    return this.router;
+  }
+
+  installCustomHandler(path: string, handler: CustomRequestHandler) {
+    if (this.host.isStarted()) {
+      throw new StatusError(
+        'Cannot install custom handlers after the server has started',
+        'SERVER_ERROR_INSTALL_CUSTOM_HANDLER'
+      );
+    }
+    const expressHandler = async (req: Request, res: Response) => {
+      this.logger.info('Called custom handler', path);
+      res.json(await handler.handle(req.body as unknown, req, this));
+    };
+    path = path.startsWith('/') ? path : '/' + path;
+    const methods = Array.isArray(handler.method)
+      ? handler.method
+      : handler.method ?? 'POST';
+    if (methods.indexOf('GET') >= 0) {
+      this.getExpressRouter().get(path, expressHandler);
+    }
+    if (methods.indexOf('POST') >= 0) {
+      this.getExpressRouter().post(path, expressHandler);
+    }
   }
 }
 

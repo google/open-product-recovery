@@ -17,27 +17,15 @@
 /**
  * A fake example server.
  */
-import {
-  log,
-  OprServer,
-  OrgConfigProvider,
-  StaticFeedConfigProvider,
-  UniversalAcceptListingPolicy,
-  StaticServerAccessControlList,
-  FakeOfferProducer,
-  OfferChange,
-  CustomRequestHandler,
-  asyncIterableToArray,
-} from 'opr-core';
+import {log, OprServer, Request, Response, CoreIntegrations} from 'opr-core';
 import yargs from 'yargs';
 import * as dotenv from 'dotenv';
 log.setLevel('WARN');
 import {DataSourceOptions, SqlOprPersistentStorage} from 'opr-sql-database';
-import {
-  CloudStorageJwksProvider,
-  CloudStorageKeySigner,
-  IamCustomEndpointWrapper,
-} from 'opr-google-cloud';
+
+import {SqlIntegrations} from 'opr-sql-database';
+import {LocalIntegrations} from './localintegrations';
+import {GcsIntegrations} from 'opr-google-cloud';
 
 // Import any local environment variables from .env
 dotenv.config();
@@ -91,6 +79,11 @@ const args = yargs
       'Hostname to use for this server. Defaults to OPR_HOSTNAME env variable' +
       ' or localhost is no env variable is specified.',
   })
+  .option('gcshostfilebucket', {
+    type: 'string',
+    describe:
+      'A GCS bucket name containing a hosts folder with configuration json',
+  })
   .option('gcspublickeyspath', {
     type: 'string',
     describe:
@@ -120,164 +113,79 @@ async function main() {
 
   const hostname = args.hostname ?? process.env.OPR_HOSTNAME ?? 'localhost';
 
-  // Create an org config provider with the url mapper we configured above. This
-  // way, org configuration information will be fetched from local servers
-  // instead of the public org url.
-  const orgConfigProvider = new OrgConfigProvider();
-
-  // Create a frontend configuration. This tells the server how to create the
-  // organization config file, and how to map its contents to server endpoints.
-  const frontendConfig = {
-    // Replace with your organization name
-    name: 'ExampleServer',
-    // Replace with your organization's public org descriptor URL
-    organizationURL: `${hostname}/org.json`,
-    orgFilePath: '/org.json',
-    jwksURL: '/jwks.json',
-    listProductsPath: '/api/list',
-    acceptProductPath: '/api/accept',
-    rejectProductPath: '/api/list',
-    reserveProductPath: '/api/reserve',
-    historyPath: '/api/history',
-  };
-
-  // Create an access control list that allows us to control which organizations
-  // can talk to this server.
-  const accessControlList = new StaticServerAccessControlList(['*']);
-
-  // Create a public keyset provider to return the public keys.
-  const publicKeysPath =
-    args.gcspublickeyspath ?? process.env.GCS_PUBLIC_KEYS_PATH;
-  if (!publicKeysPath) {
-    throw new Error('Cannot start server without public keys');
+  const gcsHostFileBucket =
+    args.gcshostfilebucket ?? process.env.GCS_HOST_FILE_BUCKET;
+  if (!gcsHostFileBucket) {
+    throw new Error('No gcs host file bucket defined');
   }
-  const jwksProvider = new CloudStorageJwksProvider(publicKeysPath);
 
-  const privateKeyPath =
-    args.gcsprivatekeypath ?? process.env.GCS_PRIVATE_KEY_PATH;
-  if (!privateKeyPath) {
-    throw new Error('Cannot start server without a private key');
-  }
-  // Create a Signer that can use the private keys to create tokens.
-  const signer = new CloudStorageKeySigner(
-    frontendConfig.organizationURL,
-    privateKeyPath
+  // Start a local in-memory server to track offers.
+  const s = new OprServer(
+    {
+      storage: {
+        moduleName: 'SqlStorage',
+        params: getDbOptions(),
+      },
+      tenantMapping: {
+        moduleName: 'TemplateHostIds',
+        params: {
+          // TODO: Fix this to take a template from an environment variable or
+          // command line param
+          urlTemplate: hostname + '/orgs/$',
+        },
+      },
+      tenantSetup: {
+        // Use the StaticMultitenant driver to read host configurations. This
+        // means this server supports multiple hosts, each of which is
+        // configured in advance with host configuration read from memory.
+        moduleName: 'GcsMultitenant',
+        params: {
+          bucket: gcsHostFileBucket,
+        },
+      },
+      hostName: hostname,
+    },
+    {
+      ...CoreIntegrations,
+      ...SqlIntegrations,
+      ...GcsIntegrations,
+      ...LocalIntegrations,
+    }
   );
 
-  // Create a feed config provider so we can fetch a list of feed configurations
-  const feedConfigProvider = new StaticFeedConfigProvider([
-    // Uncomment below to read from other servers.
-    // {
-    //   organizationUrl: 'https://opr.yetanotherexamplehost.org/org.json',
-    //   maxUpdateFrequencyMillis: 1000,
-    // },
-  ]);
-  // Create a listing policy so that we know how to list ingested offers to
-  // other servers.
-  const listingPolicy = new UniversalAcceptListingPolicy(['*']);
-  const storageDriver: SqlOprPersistentStorage = new SqlOprPersistentStorage({
-    dsOptions: getDbOptions(),
-  });
+  // Most customizations happen per-host, but we can also add global server
+  // customizations.
+  s.installCustomStartupRoutine(async (express, server) => {
+    // Install middleware to require authentication on all global utility
+    // handlers. Disable authentication (for testing only!) by commenting out
+    // the next line.
+    // express.use(
+    //   '/util/*',
+    //   iamMiddleware({
+    //     isAllowed: async (email: string) => {
+    //       return email === serviceAccount;
+    //     },
+    //   })
+    // );
+    const statusCheckHandler = async (req: Request, res: Response) => {
+      res.json('ok');
+    };
+    express.post('/util/status', statusCheckHandler);
+    express.get('/util/status', statusCheckHandler);
 
-  const oprServiceAccount =
-    args.serviceaccount ?? process.env.OPR_SERVICE_ACCOUNT;
-  // Now we have all the pieces to start our server.
-  console.log('Starting server with frontend config', frontendConfig);
-  const s = new OprServer({
-    frontendConfig: frontendConfig,
-    orgConfigProvider: orgConfigProvider,
-    storage: storageDriver,
-    listingPolicy: listingPolicy,
-    jwksProvider: jwksProvider,
-    signer: signer,
-    accessControlList: accessControlList,
-  });
+    const synchronizeHandler = async (req: Request, res: Response) => {
+      await (server.getStorage() as SqlOprPersistentStorage).synchronize(true);
+      res.json('ok - db initialized');
+    };
+    express.post('/util/synchronize', synchronizeHandler);
+    express.get('/util/synchronize', synchronizeHandler);
 
-  // Now for the fun part. Let's customize our server with lots of crazy
-  // extensions!
-  s.installCustomStartupRoutine(async api => {
-    // We create a fake offer producer. Replace this with an offer producer that
-    // reads from your inventory system to publish new offers.
-    api.installOfferProducer(
-      new FakeOfferProducer({
-        sourceOrgUrl: frontendConfig.organizationURL,
-        integrationApi: api,
-        updateFrequencyMillis: 3000,
-        newItemFrequencyMillis: 10000,
-      })
-    );
-
-    // Create a custom debug endpoint that will return the list of ALL offers on
-    // this server.
-    // ADD AUTHENTICATION TO AN ENDPOINT LIKE THIS! This is exposing all offers
-    // on your server to anyone that calls this endpoint. For a real server,
-    // only admins and developers should be able to see this information.
-    // Organizations should only see offers that are listed for them.
-    api.installCustomHandler('allOffers', {
-      method: ['GET', 'POST'],
-      handle: async () => {
-        return await asyncIterableToArray(api.getOffersFromThisHost());
-      },
-    });
-
-    // Create a custom endpoint that will call db.synchronize() to initialize
-    // the database.
-    const synchronizeEndpoint = {
-      method: ['POST', 'GET'],
-      handle: async () => {
-        await storageDriver.synchronize(true);
-        return 'ok - db initialized';
-      },
-    } as CustomRequestHandler;
-    api.installCustomHandler(
-      'synchronize',
-      // Install the synchronize endpoint, wrapped with an authentication
-      // checker that ensures the request is coming from our service account.
-      IamCustomEndpointWrapper.wrap(synchronizeEndpoint, {
-        isAllowed: async (email: string) => {
-          return email === oprServiceAccount;
-        },
-      })
-    );
-
-    // Create a custom endpoint that will display the offer acceptance history.
-    const historyEndpoint = {
-      method: ['POST', 'GET'],
-      handle: async () => {
-        return await asyncIterableToArray(api.getLocalAcceptHistory());
-      },
-    } as CustomRequestHandler;
-    api.installCustomHandler('history', historyEndpoint);
-
-    // Create a custom endpoint that will call server.ingest() to pull in any
-    // new offers, and return any changes that occurred.
-    // Here, we are only using one OfferProducer, the "FakeOfferProducer".
-    // In this example, ingest() will call the FakeOfferProducer and generate
-    // fake offers for testing/demo use.
-    // Create a custom endpoint that will call server.ingest() to pull in any
-    // new offers, and return any changes that occurred.
-    const ingestEndpoint = {
-      method: ['POST'],
-      handle: async () => {
-        const changes = [] as Array<OfferChange>;
-        const changeHandler = api.registerChangeHandler(async change => {
-          changes.push(change);
-        });
-        await s.ingest();
-        changeHandler.remove();
-        return changes;
-      },
-    } as CustomRequestHandler;
-    api.installCustomHandler(
-      'ingest',
-      // Install the ingest endpoint, wrapped with an authentication checker
-      // that ensures the request is coming from our service account.
-      IamCustomEndpointWrapper.wrap(ingestEndpoint, {
-        isAllowed: async (email: string) => {
-          return email === oprServiceAccount;
-        },
-      })
-    );
+    const ingestAllHandler = async (req: Request, res: Response) => {
+      await server.ingest();
+      res.json('ok - db initialized');
+    };
+    express.post('/util/ingest', ingestAllHandler);
+    express.get('/util/ingest', ingestAllHandler);
   });
   await s.start(port);
 }

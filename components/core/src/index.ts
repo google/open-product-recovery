@@ -15,3 +15,4 @@
  */
 
 export * from './coreapi';
+export * from './integrations';

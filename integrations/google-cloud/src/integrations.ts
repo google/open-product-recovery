@@ -14,20 +14,9 @@
  * limitations under the License.
  */
 
-import type {FeedConfig, FeedConfigProvider} from 'opr-core';
-import {Storage} from '@google-cloud/storage';
-import {GcsFileSpec, getGcsJson} from '../util/gcs';
+import {CloudStorageTenantNodeConfigProviderIntegration} from './config/cloudstoragetenantnodeconfigproviderintegration';
 
-export class CloudStorageFeedConfigProvider implements FeedConfigProvider {
-  private storage: Storage;
-  private fileSpec: GcsFileSpec | string;
-
-  constructor(fileSpec: GcsFileSpec | string, storage = new Storage()) {
-    this.storage = storage;
-    this.fileSpec = fileSpec;
-  }
-
-  async getFeeds(): Promise<Array<FeedConfig>> {
-    return getGcsJson(this.fileSpec, this.storage);
-  }
-}
+// TODO(johndayrichter): Add integrations for every pluggable in this module
+export const GcsIntegrations = {
+  GcsMultitenant: CloudStorageTenantNodeConfigProviderIntegration,
+};

@@ -15,7 +15,10 @@
  */
 
 import type {JSONWebKeySet} from 'jose';
+import {Pluggable} from '../integrations/pluggable';
 
-export interface JwksProvider {
+export interface JwksProvider extends Pluggable {
+  readonly type: 'jwksProvider';
+
   getJwks(): Promise<JSONWebKeySet>;
 }

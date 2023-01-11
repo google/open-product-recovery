@@ -24,7 +24,8 @@ export class ConfigurableSignJWT extends SignJWT {
   /**
    * Sets the JWS Protected Header on the SignJWT object.
    *
-   * @param protectedHeader JWS Protected Header. Must contain an "alg" (JWS Algorithm) property.
+   * @param protectedHeader JWS Protected Header. Must contain an "alg"
+   *     (JWS Algorithm) property.
    */
   setProtectedHeader(protectedHeader: JWTHeaderParameters) {
     // This has to be overridden to give us access to the protected header in

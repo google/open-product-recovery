@@ -33,7 +33,7 @@ import FakeOrgCPrivateKey from '../../sampledata/orgc/priv.key.json';
 import FakeOrgDConfigJson from '../../sampledata/orgd/org.json';
 import FakeOrgDConfigJwks from '../../sampledata/orgd/jwks.json';
 import FakeOrgDPrivateKey from '../../sampledata/orgd/priv.key.json';
-import {StandardVerifier} from '../../../src/auth/verifier';
+import {StandardVerifier} from '../../../src/auth/standardverifier';
 
 chai.use(chaiAsPromised);
 
@@ -150,7 +150,7 @@ describe('LocalKeySigner', () => {
       it('should generate a chain with correct length', () => {
         expect(chain.length).to.eq(4);
       });
-      it('should reject a long chain with bad initial entitlement', async () => {
+      it('should reject long chain with bad initial entitlement', async () => {
         await expect(
           verifier.verifyChain(chain, {
             initialEntitlements: 'bad',

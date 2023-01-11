@@ -15,21 +15,23 @@
  */
 
 import {Offer, OfferHistory} from 'opr-models';
-import {OfferProducer} from '../coreapi';
 import {HandlerRegistration} from '../model/handlerregistration';
 import {Interval} from '../model/interval';
 import {OfferChange} from '../model/offerchange';
 import {OfferId} from '../model/offerid';
 import {TimelineEntry} from '../model/timelineentry';
 import {CustomRequestHandler} from '../server/customrequesthandler';
-import {Express} from 'express';
+import {IRouter} from 'express';
 import {JsonValue} from '../util/jsonvalue';
+import {OfferProducer} from '../offerproducer/offerproducer';
 
 /**
  * An API used by OPR integrations. This API is passed to custom startup
  * routines and custom handlers.
  */
 export interface IntegrationApi {
+  readonly hostOrgUrl: string;
+
   /**
    * Stores a key-value pair. If a value already exists at the given key, it
    * will be replaced and the old value returned.
@@ -144,22 +146,16 @@ export interface IntegrationApi {
   ): HandlerRegistration;
 
   /**
-   * Installs a custom request handler. This MUST be called before the server
-   * starts.
-   */
-  installCustomHandler(path: string, handler: CustomRequestHandler): void;
-
-  /**
-   * Installs an offer producer. This MUST be called before the server
-   * starts.
-   */
-  installOfferProducer(producer: OfferProducer): void;
-
-  /**
    * Returns the Express server running OPR. This can be used to install custom
    * middleware or perform other bare-metal customizations to the server. You
    * can easily break an OPR node by messing with the underlying server, so
    * only touch this if you really know what you're doing.
    */
-  getExpressServer(): Express;
+  getExpressRouter(): IRouter;
+
+  installCustomHandler(path: string, handler: CustomRequestHandler): void;
+
+  installOfferProducer(producer: OfferProducer): void;
+
+  destroy(): void;
 }

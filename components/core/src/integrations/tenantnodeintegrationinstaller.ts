@@ -1,5 +1,5 @@
 /**
- * Copyright 2022 Google LLC
+ * Copyright 2023 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,21 @@
  * limitations under the License.
  */
 
-import {FrontendConfig} from './frontendconfig';
+import {IntegrationApi} from './integrationapi';
+import {Pluggable} from './pluggable';
 
-export interface FrontendConfigProvider {
-  getConfig(): Promise<FrontendConfig>;
+export type TenantNodeIntegrationUninstallFn = (
+  integrationApi: IntegrationApi
+) => Promise<void>;
+
+export type TenantNodeIntegrationInstallFn = (
+  integrationApi: IntegrationApi
+) => Promise<void>;
+
+export interface TenantNodeIntegrationInstaller extends Pluggable {
+  readonly type: 'integrationInstaller';
+
+  install: TenantNodeIntegrationInstallFn;
+  uninstall?: TenantNodeIntegrationUninstallFn;
+  mountPath?: string;
 }

@@ -1,0 +1,60 @@
+{
+  "listingPolicy": {
+    "moduleName": "UniversalListingPolicy",
+    "params": {
+      "orgUrls": ["*"]
+    }
+  },
+  "signer": {
+    "moduleName": "LocalKeySigner",
+    "params": {
+      "privateKey": {
+        "kty": "RSA",
+        "n": "tVFMV8lRlQSs8hGZaTvGPDEyxaOnTTVAiil_kVitR3YuevqNWnbIV9gdv6zbu3vqz8Y1bNxFVW9tsyX1SBACFev5zK-d_X6ZNy7bfAVuqfpDmAqIsMYh3O1vTWnUTbxFReEVt6mIuylDEp3Ezfy5Jv6LgRz1o7cpCLbcMAMs4pAxSSxKOGwBRdAi-oZ8SlAdmL-OKSehOUXPzAuhinZxjixkwLFSCBEaEVQIJ3TalT8tfduSaKhDtzBWHBwbmB0pbQtByLoOoGywCUiY1p4ibB9rsWSJzsx9fsKW7tX6pO8Opc_42tCq7Ghwz4imTZXB5xNs9xKyfHV5O-fxjlf0Mw",
+        "e": "AQAB",
+        "d": "DZ_UwTnu5-goiK363ZXwwOAfhQtVjG8mcNtKayUDLD38oyAFlBkd17_1CEyYXD-k9sTZidsJWLCdSRtekXImffgz1oYRtJUZNTTPqEOOO7aC8r9D4yiYLc4nkWUU31x4xhXyOFFEZW_lytXRDnthfEUfPW3sJUejjTSUWgU7D7EOhLBm0BySdjmgM36WaD7nPE85FwtuYbQPmeYOpfOXF4B6ZmFmR6WtK8aX8O7r91uY6ORf4s_lJpMSV1gJza4BNVPLF9NaOMYR6OlJDcmcLewqiowZ-zIQiUqVn21ML0rU6xt4F7res8iG9WAtHFag9D3uTc6yONwReFRbW4q1kQ",
+        "p": "w-X8Q4C6Y-y_ecDyoWbL3cltkbhDKoqaEHmQIKrc0FKqoetR3x3d1IFPoG5cXH9EA6R9q1rEDJ4r9Iwagf6Rb-VfH-DopjxcRxczxB6zslGrEAs1NEpl6BfRwATc_Tz_JoYuRUcC9luZ-uX1svwLO1dZgddRTs8Ep75G3jRV7hE",
+        "q": "7PIf29ryEnsIX45S9PfGTBE2nwk7uWXlGNEBcLSl7Ai2w810n9p6Iv67QEPZxyLevWIL6GVrZ3IA-wAk49_-00VxhgW8-agE8A44mTEcNxmhe5vbxEgfK5F1TTstYonApDVXWkG_SHR2dqUuSELecK63G9-hx-14mVOHxnHxigM",
+        "dp": "qmqEDWUKwKrP12cWq3n1l7cG7mFRbMyuQe6-huycs012yu0fh-0_cQIc9v-KsZy02kZaXJrVOfTPYCoRVUzT0HfFTMInIZYY4G86xT3ALTwGiCp32kluZX1zJowUguhxPl40GmgwF4iQZ0dteorwamsOnnllbh2Bezt4Aw2cQ0E",
+        "dq": "SUgVHF0Z0ydkDpGpDIR5Ott0BjnH0-40rbkuddoZGugTBnnLoQjkD2CzLwwNFa6uLupc_nInhqXWscp4nlWPrW3jz2yE5r3VUR1E2fQ7Yrs1m1I35PvdUA87tTghMEGkZ-TrcEm3TERgww8RQl4UB8uxbBh9I6VJUDpqWrCw4Fs",
+        "qi": "J-F_Y2pgVkInUw5QR1HLPd_Xz3KsLcqCxbyZb7gz5ya1DjN4POFAlmF6vdRXU-FZ5fa58_vM2ZLLnpgxo_2m2KriRVns4_dfxRXwgqklAURoShMCRpt35KyZgKk2P2jRJLZFZ8-nzA8OZdyVZ70a43oXAvlNokOHscpTGc2iNuQ",
+        "alg": "RS256"
+      }
+    }
+  },
+  "jwks": {
+    "moduleName": "LocalJwks",
+    "params": {
+      "publicKeys": [
+        {
+          "kty": "RSA",
+          "n": "tVFMV8lRlQSs8hGZaTvGPDEyxaOnTTVAiil_kVitR3YuevqNWnbIV9gdv6zbu3vqz8Y1bNxFVW9tsyX1SBACFev5zK-d_X6ZNy7bfAVuqfpDmAqIsMYh3O1vTWnUTbxFReEVt6mIuylDEp3Ezfy5Jv6LgRz1o7cpCLbcMAMs4pAxSSxKOGwBRdAi-oZ8SlAdmL-OKSehOUXPzAuhinZxjixkwLFSCBEaEVQIJ3TalT8tfduSaKhDtzBWHBwbmB0pbQtByLoOoGywCUiY1p4ibB9rsWSJzsx9fsKW7tX6pO8Opc_42tCq7Ghwz4imTZXB5xNs9xKyfHV5O-fxjlf0Mw",
+          "e": "AQAB",
+          "alg": "RS256"
+        }
+      ]
+    }
+  },
+  "accessControlList": {
+    "moduleName": "StaticAccessControlList",
+    "params": {
+      "allow": ["*"]
+    }
+  },
+  "name": "ExampleServer2",
+  "feedConfigs": ["https://openproductrecovery.org/orgs/example/org.json"],
+  "integrations": [
+    {
+      "moduleName": "LocalMain",
+      "params": {
+        "serviceAccount": "opr-example-server-agent@open-product-recovery.iam.gserviceaccount.com"
+      }
+    },
+    {
+      "moduleName": "howdyworld",
+      "params": {
+        "mountPath": "howdy"
+      }
+    }
+  ]
+}

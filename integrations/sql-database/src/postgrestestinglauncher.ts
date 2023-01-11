@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-/** A launcher for a local, empty instance of Postgres for testing. */
 import * as fs from 'fs';
 import * as path from 'path';
 import process from 'node:process';
@@ -23,6 +22,7 @@ import net from 'net';
 import os from 'os';
 import {getFreePort, log, Logger} from 'opr-core';
 
+/** A launcher for a local, empty instance of Postgres for testing. */
 export interface PostgresTestingLauncherOptions {
   postgresBinaryPath?: string;
   postgresInitDbPath?: string;

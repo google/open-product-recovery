@@ -30,9 +30,9 @@ import {
   TimelineEntry,
   Interval,
   StatusError,
-  OfferId,
   OfferVersionPair,
   OfferProducerMetadata,
+  JsonValue,
 } from 'opr-core';
 import {
   DecodedReshareChain,
@@ -46,7 +46,6 @@ import {
   DataSourceOptions,
   EntityManager,
   FindOptionsWhere,
-  QueryResult,
 } from 'typeorm';
 import {KnownOfferingOrg} from './persistentmodel/knownofferingorg';
 import {CorpusOffer} from './persistentmodel/corpusoffer';
@@ -57,7 +56,6 @@ import {StoredRejection} from './persistentmodel/storedrejection';
 import {StoredAcceptance} from './persistentmodel/storedacceptance';
 import {AcceptanceHistoryViewer} from './persistentmodel/acceptancehistoryviewer';
 import {ProducerMetadata} from './persistentmodel/producermetadata';
-import {JsonValue} from 'opr-core/build/util/jsonvalue';
 import {StoredKeyValue} from './persistentmodel/storedkeyvalue';
 
 export {DataSourceOptions} from 'typeorm';
@@ -154,6 +152,8 @@ export class SqlTransaction implements Transaction {
 }
 
 export class SqlOprPersistentStorage implements PersistentStorage {
+  readonly type = 'storage';
+
   private readonly db: DataSource;
   private initialized = false;
   private initializingPromise: Promise<DataSource> | undefined;
@@ -956,9 +956,18 @@ export class SqlOprPersistentStorage implements PersistentStorage {
         .leftJoinAndSelect('timelineentry.snapshot', 'snapshot')
         .where(
           new Brackets(qb => {
-            qb.where(
+            let brackets = qb.where(
               'timelineentry.targetOrganizationUrl = :viewingOrgUrl'
-            ).orWhere('timelineentry.targetOrganizationUrl = :wildcard');
+            );
+            // The wildcard operator does not apply in requests by the host org
+            // itself. The host org doesn't see its own offers when making a
+            // timeline request, even if an offer is wildcard listed.
+            if (hostOrgUrl !== viewingOrgUrl) {
+              brackets = brackets.orWhere(
+                'timelineentry.targetOrganizationUrl = :wildcard'
+              );
+            }
+            return brackets;
           })
         )
         .andWhere('timelineentry.startTimeUTC <= :timestampUTC')

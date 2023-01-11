@@ -19,7 +19,10 @@ import {expect} from 'chai';
 import {examples, Offer} from 'opr-models';
 import {OfferMapLookup} from '../../src/model/offerlookup';
 import {applyOfferPatch} from '../../src/diff/patch';
-import {asUnversionedStructuredId, asVersionedStructuredId, idToUrl} from '../../src/model/offerid';
+import {
+  asUnversionedStructuredId,
+  asVersionedStructuredId,
+} from '../../src/model/offerid';
 import {deepClone} from 'fast-json-patch';
 
 describe('patch tests', () => {

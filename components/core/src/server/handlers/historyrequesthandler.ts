@@ -40,9 +40,6 @@ export class HistoryRequestHandler extends AuthenticatedRequestHandler<
     request: HistoryPayload,
     decodedAuthToken: JWTPayload
   ): Promise<HistoryResponse> {
-    return await this.database.getHistory(
-      decodedAuthToken.iss!,
-      request
-    );
+    return await this.database.getHistory(decodedAuthToken.iss!, request);
   }
 }

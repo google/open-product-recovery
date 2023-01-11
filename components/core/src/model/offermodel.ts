@@ -25,7 +25,7 @@ import {
   RejectOfferResponse,
   ReserveOfferResponse,
 } from 'opr-models';
-import {OfferSetUpdate} from '../coreapi';
+import {OfferSetUpdate} from '../offerproducer/offerproducer';
 import {OfferProducerMetadata} from '../offerproducer/offerproducermetadata';
 import {HandlerRegistration} from './handlerregistration';
 import {OfferChange} from './offerchange';

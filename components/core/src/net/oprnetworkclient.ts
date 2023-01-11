@@ -77,13 +77,16 @@ export class OprNetworkClient {
     payload?: unknown,
     userSignerOptions?: IssueTokenOptions
   ) {
+    console.log('Running exec', target);
     const orgConfig = await this.configProvider.get(target);
+    console.log('Fetched org config', orgConfig);
     const signerOptions = {
       ...userSignerOptions,
       scopes: getRequiredScopes(command),
     } as IssueTokenOptions;
     const token = await this.signer.issueToken(target, signerOptions);
     const url = OprNetworkClient.getFetchUrl(orgConfig, command);
+    console.log('Got fetch url', url);
     if (!url) {
       throw new StatusError(
         'Organization ' + target + 'does not support ' + command,

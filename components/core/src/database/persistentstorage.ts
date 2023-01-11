@@ -20,6 +20,7 @@ import {
   OfferHistory,
   ReshareChain,
 } from 'opr-models';
+import {Pluggable} from '../integrations/pluggable';
 import {Interval} from '../model/interval';
 import {TimelineEntry} from '../model/timelineentry';
 import {OfferProducerMetadata} from '../offerproducer/offerproducermetadata';
@@ -35,7 +36,9 @@ export type TransactionType = 'READONLY' | 'READWRITE';
  * implementations of methods in this class should not call other methods in
  * this class.
  */
-export interface PersistentStorage {
+export interface PersistentStorage extends Pluggable {
+  readonly type: 'storage';
+
   createTransaction(type?: TransactionType): Promise<Transaction>;
 
   /**

@@ -22,6 +22,8 @@ const REGEXP_PATTERN = /^r\/(.+)\/$/;
 export class CloudStorageServerAccessControlList
   implements ServerAccessControlList
 {
+  readonly type = 'accessControlList';
+
   private storage: Storage;
   private fileSpec: GcsFileSpec | string;
 

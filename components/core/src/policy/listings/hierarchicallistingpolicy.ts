@@ -15,9 +15,8 @@
  */
 
 import {OfferListingPolicy} from '../offerlistingpolicy';
-import {Listing, ListingTarget} from '../../coreapi';
 import {Offer} from 'opr-models';
-
+import {Listing, ListingTarget} from '../../model/listing';
 
 /**
  * A generic listing policy that determines listings from a series of nested
@@ -31,6 +30,8 @@ import {Offer} from 'opr-models';
  * Later, this will support generic offer filters at any level in the hierarchy.
  */
 export class HierarchicalListingPolicy implements OfferListingPolicy {
+  readonly type = 'listingPolicy';
+
   private listingHierarchies: Array<ListingHierarchy>;
 
   constructor(listingHierarchies: Array<ListingHierarchy>) {
@@ -98,7 +99,6 @@ export class HierarchicalListingPolicy implements OfferListingPolicy {
     );
   }
 }
-
 
 export interface ListingHierarchy {
   // todo (ryckmanat): add filtering option here once we have a general method

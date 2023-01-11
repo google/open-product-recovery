@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 
-import {Validator} from './validator';
 export * as schemas from './types-generated/schemas';
 export * from './types-generated/types';
-export {Validator};
+export {Validator, ValidatorError, ValidatorResult} from './validator';
 export * as examples from './exampleoffers/index';

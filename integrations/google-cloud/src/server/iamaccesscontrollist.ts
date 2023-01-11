@@ -13,23 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import {TokenPayload} from 'google-auth-library';
 
-import type {FrontendConfig, FrontendConfigProvider} from 'opr-core';
-import {Storage} from '@google-cloud/storage';
-import {GcsFileSpec, getGcsJson} from '../util/gcs';
-
-export class CloudStorageFrontendConfigProvider
-  implements FrontendConfigProvider
-{
-  private storage: Storage;
-  private fileSpec: GcsFileSpec | string;
-
-  constructor(fileSpec: GcsFileSpec | string, storage = new Storage()) {
-    this.storage = storage;
-    this.fileSpec = fileSpec;
-  }
-
-  getConfig(): Promise<FrontendConfig> {
-    return getGcsJson(this.fileSpec, this.storage);
-  }
+export interface IamAccessControlList {
+  isAllowed(userId: string, payload: TokenPayload): Promise<boolean>;
 }

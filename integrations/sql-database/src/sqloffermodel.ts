@@ -36,6 +36,7 @@ import {
   OfferProducerMetadata,
   asyncIterableToArray,
   idToUrl,
+  verifyDecodedChain,
 } from 'opr-core';
 import {
   ListOffersPayload,
@@ -58,7 +59,6 @@ import {FeedCorpus} from './model/feedcorpus';
 import {FeedCorpusOffer} from './model/feedcorpusoffer';
 import {toOfferSet} from 'opr-core/build/diff';
 import {Validator} from 'opr-models';
-import {verifyDecodedChain} from 'opr-core/build/auth/verifier';
 import {Acceptance} from './model/acceptance';
 import {AcceptanceHistoryViewer} from './model/acceptancehistoryviewer';
 import {KnownOfferingOrg} from './model/knownofferingorg';

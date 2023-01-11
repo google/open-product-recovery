@@ -14,13 +14,21 @@
  * limitations under the License.
  */
 
-import {Clock, DefaultClock, iterableToAsync, OfferProducer, OfferSetUpdate} from 'opr-core';
+import {
+  Clock,
+  DefaultClock,
+  iterableToAsync,
+  OfferProducer,
+  OfferSetUpdate,
+} from 'opr-core';
 import {GoogleSheetsClient} from '../googlesheets/googlesheetsclient';
 import {SimpleSheetFormat} from '../googlesheets/simplesheetformat';
 import {GoogleSheetsFormat} from '../googlesheets/googlesheetsformat';
 
 /** An OfferProducer that reads from Google Sheets */
 export class GoogleSheetsOfferProducer implements OfferProducer {
+  readonly type = 'offerProducer';
+
   readonly id: string;
   readonly client: GoogleSheetsClient;
   private clock: Clock;

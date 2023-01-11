@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-import {Clock, DefaultClock} from '../coreapi';
+import {Clock} from './clock';
+import {DefaultClock} from './defaultclock';
 
 /** An unordered set of organization urls. */
 export interface AsyncGetter<T> {

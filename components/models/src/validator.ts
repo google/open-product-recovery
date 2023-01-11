@@ -20,15 +20,14 @@ import * as schema from './types-generated/schemas';
 import {Offer, SchemaNameToType} from './types-generated/types';
 
 export class ValidatorResult {
-  valid: boolean;
-  validatorResult: JsonSchemaValidatorResult;
-  additionalErrors: Readonly<Array<string>>;
+  readonly valid: boolean;
+  readonly validatorResult: JsonSchemaValidatorResult;
+  readonly additionalErrors: ReadonlyArray<string>;
   constructor(
-    valid: boolean,
     validatorResult: JsonSchemaValidatorResult,
-    additionalErrors: Array<string>
+    additionalErrors: Array<string> = []
   ) {
-    this.valid = valid;
+    this.valid = validatorResult.valid && additionalErrors.length === 0;
     this.validatorResult = validatorResult;
     this.additionalErrors = additionalErrors;
   }
@@ -144,7 +143,7 @@ class OprValidator {
    * If the check fails, a ValidatorError is thrown containing the details of
    * the failed validation. If the check passes, the json value is cast to the
    * appropriate TypeScriptType.
-   * 
+   *
    * schemaNameOrTypeId must be the $id or title of a schema that was compiled
    * into generated_types/types.ts.
    */
@@ -186,8 +185,7 @@ class OprValidator {
       nestedErrors: true,
     });
     const additionalErrors = this.findAdditionalErrors(json, schemaOrId);
-    const valid = schemaResult.valid && additionalErrors.length === 0;
-    return new ValidatorResult(valid, schemaResult, additionalErrors);
+    return new ValidatorResult(schemaResult, additionalErrors);
   }
 
   private findAdditionalErrors(

@@ -15,6 +15,7 @@
  */
 
 import {ListOffersPayload, Offer, OfferPatch} from 'opr-models';
+import {Pluggable} from '../integrations/pluggable';
 
 export interface OfferSetUpdate {
   earliestNextRequestUTC: number;
@@ -25,7 +26,9 @@ export interface OfferSetUpdate {
   delta?: AsyncIterable<OfferPatch>;
 }
 
-export interface OfferProducer {
+export interface OfferProducer extends Pluggable {
+  readonly type: 'offerProducer';
+
   readonly id: string;
 
   produceOffers(payload: ListOffersPayload): Promise<OfferSetUpdate>;

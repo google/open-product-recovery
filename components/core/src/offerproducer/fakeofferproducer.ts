@@ -31,6 +31,8 @@ import {IntegrationApi} from '../integrations/integrationapi';
  * override this.
  */
 export class FakeOfferProducer implements OfferProducer {
+  readonly type = 'offerProducer';
+
   readonly id: string;
   private clock: Clock;
   private updateChance: number;

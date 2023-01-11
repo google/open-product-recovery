@@ -12,7 +12,7 @@
     "build": "tsc -p .",
     "watch": "tsc -w -p .",
     "test": "mocha -r ts-node/register -R spec 'test/**/*.spec.ts'",
-    "lint": "eslint",
+    "lint": "eslint .",
     "clean": "rm -rf build",
     "compile": "tsc",
     "fix": "eslint --fix",
@@ -60,11 +60,13 @@
     "fast-json-patch": "^3.1.1",
     "google-auth-library": "^8.1.1",
     "jose": "^4.10.4",
+    "jsonschema": "^1.4.1",
     "loglevel": "^1.8.0",
     "node-fetch": "^2.6.7",
     "opr-models": "^0.6.4",
     "pem-jwk": "^2.0.0",
     "random-seed": "^0.3.0",
+    "type-fest": "^3.5.1",
     "yargs": "^17.6.0"
   },
   "engines": {
